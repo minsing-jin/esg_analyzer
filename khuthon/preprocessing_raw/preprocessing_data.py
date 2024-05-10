@@ -15,8 +15,16 @@ class GoogleSheetLoadPreprocessing(BASE):
         super().__init__()
         load_dotenv()       # Load environment variables from .env file
 
-        __credentials = service_account.Credentials.from_service_account_file(
-            os.environ.get("GOOGLE_ACCOUNT_CREDENTIAL_PATH"))
+        path = "/Users/jinminseong/Desktop/khuthon-422909-b0604f438115.json"
+        load_dotenv()  # Load environment variables from .env file
+
+        # Use the environment variable to get the path
+        credentials_path = os.environ.get(path)
+        if credentials_path is None:
+            raise ValueError("Google application credentials path not found in environment variables.")
+
+        __credentials = service_account.Credentials.from_service_account_file(credentials_path)
+
         __scoped_credentials = __credentials.with_scopes(
             [
                 'https://www.googleapis.com/auth/spreadsheets',
