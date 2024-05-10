@@ -9,11 +9,12 @@ import requests
 import pandas as pd
 import uuid
 from copy import deepcopy
-from public_opinion_analyzer.crawler.base import BaseCrawler
+from khuthon.public_opinion_analyzer.crawler.base_crawler import BaseCrawler
 
 class SearchEngineNewsCrawler(BaseCrawler):
-    def __init__(self):
+    def __init__(self, query_dic: dict):
         super().__init__()
+        self.query_generation_lst = query_dic["추천검색어"]
 
     def extract_news_link(self, maxpage, query, sort, s_date, e_date):
         s_from = s_date.replace(".", "")
@@ -48,8 +49,6 @@ class SearchEngineNewsCrawler(BaseCrawler):
 
     # Function to fetch news content
     def fetch_news_content(self, url):
-        test = self.headers
-        t = 0
         news_response = requests.get(url, headers=self.headers)
         if news_response.status_code == 200:
             news_html = BeautifulSoup(news_response.text, "html.parser")
@@ -81,7 +80,7 @@ class SearchEngineNewsCrawler(BaseCrawler):
 
     def get_content(self, url):
         media_outlet, title, content, date = self.fetch_news_content(url)
-        return {'PublicationDate':date,'title':title, 'media_outlet': media_outlet, 'link':url,'Body':content}
+        return {'PublicationDate':date, 'title':title, 'media_outlet': media_outlet, 'link':url,'Body':content}
 
     # 이 함수는 crawling된 홈페이지 링크에 하나씩 apply하면서 타고 들어가서 네이버 뉴스 댓글 크롤링
     def get_comments(self, url, wait_time=5, delay_time=0.1):
@@ -146,25 +145,18 @@ class SearchEngineNewsCrawler(BaseCrawler):
         # 함수를 종료하며 list_sum을 결과물로 제출
         return list_sum
 
+    def run_crawling(self):
+        crawled_dataset = pd.DataFrame()
+        for query in self.query_generation_lst:
+            naver_news = self.extract_news_link(3, query, '0', '2024.01.01', '2024.01.20')
+            naver_news['contents'] = naver_news['naver_news_link'].apply(self.get_content)
+            naver_news['comments'] = naver_news['naver_news_link'].apply(self.get_comments)
 
-if __name__ == '__main__':
-    search_engine_news_crawler = SearchEngineNewsCrawler()
-    naver_news = search_engine_news_crawler.extract_news_link(300, '경기도 저출산', '0', '2024.01.01', '2024.05.05')
-    naver_news['contents'] = naver_news['naver_news_link'].apply(search_engine_news_crawler.get_content)
-    naver_news['comments'] = naver_news['naver_news_link'].apply(search_engine_news_crawler.get_comments)
-
-    # Convert dictionary-like strings to actual dictionaries
-    naver_news['contents'] = naver_news['contents'].apply(eval)
-
-    # Flatten the dictionary elements in the 'contents' column
-    preprocessing_article = pd.concat([pd.json_normalize(naver_news['contents']), naver_news],
-                                      axis=1).drop('contents', axis=1)
-
-    preprocessing_article.to_csv('/Users/jinminseong/Desktop/local_government_news.csv', index=False)
-
-# TODO:-> <a>태그에서만 제목과 링크 주소 어떻게 추출함?
-# TODO: 네이버 뉴스가 없는 것에 대한 크롤링 -> 태그 안에서 볼수 없음
-# TODO: 좋아요 수 확인,
+            # Flatten the dictionary elements in the 'contents' column
+            crawled = (pd.concat([pd.json_normalize(naver_news['contents']), naver_news],
+                                          axis=1).drop('contents', axis=1))
+            crawled_dataset = pd.concat([crawled_dataset, crawled])
+        return crawled_dataset
 
 
 # TODO: 물어볼것:
