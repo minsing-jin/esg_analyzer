@@ -45,7 +45,7 @@ class GoogleSheetLoadPreprocessing(BASE):
         assert len(self.start_dataset_dict) == len(datasets_name_lst), "The number of datasets is not equal to the number of datasets in the list"
 
     # TODO: 관점별로 나눠서 gpt 결과물 추출 및 루커 스튜디오 반영 -> 대시보드에 나타낼 데이터셋 만들어서 upload dataset
-    def upload_dataset(self):
+    def upload_dataset(self, df: pd.DataFrame, sheet_name: str):
         """Upload the dataset to the google sheet
         참고링크: https://velog.io/@king/python-spreadsheet
         upload 주의사항:
@@ -98,9 +98,9 @@ class GoogleSheetLoadPreprocessing(BASE):
     #         print("Error parsing JSON: ", e)
     #         return "No category"  # or handle the error appropriately
 
-    def query_generation(self):
+    def query_optimization(self, query: str):
         sys = f"""너는 친환경 주식관련 뉴스 검색어를 추천해주는 helpful assistant야.
-        너는 검색어를 총 3개를 추천할거야. 
+        너는 검색어를 총 3개를 추천할거야. {query}에 대한 관련 검색어를 만들어줘.
         첫번째는 esg, 기후변화 대응 관련 사업을 트랜드로 확장하고 있는 기업관련을 주식 검색어로 만들어줘.
         두번째는 esg 관련, 친환경 관련 주식 테마에 대한 관련 검색어로 만들어줘.
         세번째는 영향력 있는 인물에 관점으로 Esg, 기후변화 대응친환경 이슈에 관한 유명인에 대한 검색어를 만들어줘.
@@ -133,34 +133,3 @@ class GoogleSheetLoadPreprocessing(BASE):
 
     def pandas_ai_eda(self, sheet_name: str, sheet_range: str):
         pass
-
-
-
-    # # TODO: 나중에 ㄱㄱ
-    # # TODO: refactoring하자..... -> 함수형 프로그래밍 데코레이터로 absa prompt keyword cloud prompt등등을 동시에 진행할 수 있게 만들기
-    # # absa_prompts에 프롬프트를 넣어두기만 해도 자동으로 불러와짐. -> 상대경로 코드로 만들어주는것
-    # def call_prompts(self):
-    #     prompt = {}
-    #     def absa_prompt():
-    #         root_dir = '../Prompt_insight_extraction/prompt/absa_prompts'
-    #         call_prompt = {}        # TODO: 왜 os walk가 안되는거지? -> 오타 이슈
-    #
-    #         for (root, dirs, files) in os.walk(root_dir):
-    #             if len(files) > 1:
-    #                 for file_name in files:
-    #                     if 'system_prompt' in file_name:
-    #                         call_prompt["system_prompt"] = open(root + '/' + file_name, 'r').read()
-    #                     elif 'user_prompt' in file_name:
-    #                         call_prompt["user_prompt"] = open(root + '/' + file_name, 'r').read()
-    #             else:
-    #                 raise FileNotFoundError(f"There is {len(files)} file that is deficient in the directory\n"
-    #                                         f"The error is caused by the absence of a system prompt or user prompt\n"
-    #                                         f"Here is problem root {root}{dirs}\n")
-    #         return call_prompt
-    #
-    #     prompt['absa_prompt'] = absa_prompt()
-    #     return prompt
-    #
-    #
-    #
-    #

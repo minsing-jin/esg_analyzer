@@ -24,36 +24,3 @@ class InsightExtraction(BaseInsightExtraction):
             print("Error parsing JSON: ", e)
             return "No category"  # or handle the error appropriately
 
-
-# issue categorization
-if __name__ == '__main__':
-    # articles = pd.read_csv('/Users/jinminseong/Desktop/#2_issue_extraction_and_summary.csv')
-    # tt= json.loads(articles['0'][0])
-    #
-    #
-    issue_reproduction = ReproductionIssue()
-
-    # issue etraction한게 리스트로 담긴게 아니라 string으로 담겨서 다시 수정해야함.
-    # articles['issue'] = articles['issue'].apply(ast.literal_eval)
-    #
-    # # issue categorization
-    # issue_lst = list(itertools.chain.from_iterable(articles['issue'].tolist()))
-    # issues = issue_reproduction.categorize_gpt(issue_lst)
-    # issue_reproduction.issues_str = ", ".join(issues)
-
-    articles = pd.read_csv('/Users/jinminseong/Desktop/naver_articles.csv')
-    articles["issue"] = articles.apply(issue_reproduction.matching_issue, axis=1).apply(pd.Series)
-    tset = 0
-    articles.to_csv('/Users/jinminseong/Desktop/#3_gpt_4_issue_reproduction.csv', index=False)
-
-
-
-if __name__ == '__main__':
-    articles = pd.read_csv('/Users/jinminseong/Desktop/naver_articles.csv')
-
-    articles = articles
-    issue_extraction = CooperateExtraction()
-    tmp = articles.apply(issue_extraction.extract_issue_gpt, axis=1)
-
-    articles = pd.concat([articles, tmp], axis=1)
-    articles.to_csv('/Users/jinminseong/Desktop/#2_issue_extraction_and_summary.csv', index=False)
