@@ -15,22 +15,7 @@ class GoogleSheetLoadPreprocessing(BASE):
         super().__init__()
         load_dotenv()       # Load environment variables from .env file
 
-        path = "/Users/jinminseong/Desktop/khuthon-422909-b0604f438115.json"
-        load_dotenv()  # Load environment variables from .env file
 
-        # Use the environment variable to get the path
-        credentials_path = os.environ.get(path)
-        if credentials_path is None:
-            raise ValueError("Google application credentials path not found in environment variables.")
-
-        __credentials = service_account.Credentials.from_service_account_file(credentials_path)
-
-        __scoped_credentials = __credentials.with_scopes(
-            [
-                'https://www.googleapis.com/auth/spreadsheets',
-            ])
-        # Google Spread Sheet API
-        self._gc = gspread.Client(auth=__scoped_credentials)
 
     def run_sheet_load_preprocessing(self):
         self.load_dataset()
@@ -60,6 +45,23 @@ class GoogleSheetLoadPreprocessing(BASE):
         1. 업로드 전에 null값 처리
         2. 업로드 전에 sheet를 clear해야함 -> 그래야 반영가능
         """
+        path = "/Users/jinminseong/Desktop/khuthon-422909-b0604f438115.json"
+        load_dotenv()  # Load environment variables from .env file
+
+        # Use the environment variable to get the path
+        credentials_path = os.environ.get(path)
+        if credentials_path is None:
+            raise ValueError("Google application credentials path not found in environment variables.")
+
+        __credentials = service_account.Credentials.from_service_account_file(credentials_path)
+
+        __scoped_credentials = __credentials.with_scopes(
+            [
+                'https://www.googleapis.com/auth/spreadsheets',
+            ])
+        # Google Spread Sheet API
+        self._gc = gspread.Client(auth=__scoped_credentials)
+
         sheet = self._gc.open_by_url(os.environ.get("STANDARD_GOOGLE_SPREAD_SHEET_URL"))
 
         worksheet = sheet.worksheet("first_dataset")
@@ -70,41 +72,6 @@ class GoogleSheetLoadPreprocessing(BASE):
         industry = self.start_dataset_dict["산업별온실가스배출"]
 
         return industry[industry[2021] == max(industry[2021][3:])]["분야 및 연도"]
-
-    # def query_generation(self):
-    #     industry = self.extract_most_harm_industry()
-    #     sys = f"""너는 구글에 검색어를 추천해주는 helpful assistant야.
-    #     가장 많은 온실가스를 배출하는 산업은 {industry}이야.
-    #     이 산업이 왜 온실가스를 제일 많이 배출하는지 네이버 뉴스 기사를 검색할 예정이야.
-    #     다음 산업이 왜 가장 대기오염물질을 많이 배출하는 문제 원인을 잘 파악할 수 있는 네이버 검색query top-3개를 만들어줘.
-    #     검색어의 조건: \n
-    #     검색어의 형태는 string이며 long한 명사구이고 검색어만 출력해. 검색어에는 {industry}이라는 단어가 포함되어야해.
-    #     검색어는 json format에 리스트로 들어갈거야."""
-    #     user = """
-    #     ------output format------
-    #     ```json
-    #     {"추천검색어":
-    #     [
-    #         "검색어1",
-    #         "검색어2",
-    #         ...
-    #     ]}
-    #     ```
-    #     """
-    #     try:
-    #         response = self.client.chat.completions.create(
-    #             model="gpt-3.5-turbo-0125",
-    #             response_format={'type': "json_object"},
-    #             messages=[
-    #                 {"role": "system", "content": sys},
-    #                 {"role": "user", "content": user}
-    #             ]
-    #         )
-    #         result = json.loads(response.choices[0].message.content)
-    #         return result
-    #     except json.JSONDecodeError as e:
-    #         print("Error parsing JSON: ", e)
-    #         return "No category"  # or handle the error appropriately
 
     def query_optimization(self, query: str):
         sys = f"""너는 친환경 주식관련 뉴스 검색어를 추천해주는 helpful assistant야.
